@@ -1,4 +1,5 @@
 from vkbottle.bot import Bot, Message
+from vkbottle.bot import rules
 from vkbottle_types import BaseStateGroup
 from vkbottle import LoopWrapper, Keyboard, KeyboardButtonColor, Text, EMPTY_KEYBOARD, CtxStorage
 
@@ -13,7 +14,7 @@ class UserInfo(BaseStateGroup):
     GROUP = 0
     GOTOMENU = 1
 
-@bot.on.message(text="тыква")
+@bot.on.message(text="меню")
 @bot.on.message(state=UserInfo.GOTOMENU)
 async def keyboard_handler(message: Message):
     keyboard = Keyboard()
@@ -28,7 +29,7 @@ async def keyboard_handler(message: Message):
     keyboard.add(Text("Изменить номер группы", {"cmd": "askgroup"}), color=KeyboardButtonColor.NEGATIVE)
     await message.answer("тыква", keyboard=keyboard)
 
-@bot.on.message(text=["start", "начать работу"])
+@bot.on.message(text=["start", "начать"])
 @bot.on.private_message(payload={"cmd": "askgroup"})
 async def askgroup_handler(message: Message):
     await message.answer("В какой группе ты учишься?", keyboard=EMPTY_KEYBOARD)
@@ -38,6 +39,8 @@ async def askgroup_handler(message: Message):
 async def getgroup_answer(message: Message):
     if message.text in grouplist:
         await message.answer("Ты учишься в %s группе" % (message.text))
+        await message.answer("Чтобы продолжить введите 'меню'")
+        return
     else:
         users_info = await bot.api.users.get(message.from_id)
         await message.answer("Нет такой группы, {}!".format(users_info[0].first_name))

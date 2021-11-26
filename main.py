@@ -1,21 +1,17 @@
 from vkbottle.bot import Bot, Message
-from vkbottle.bot import rules
-from vkbottle_types import BaseStateGroup
-from vkbottle import LoopWrapper, Keyboard, KeyboardButtonColor, Text, EMPTY_KEYBOARD, CtxStorage
+from vkbottle import LoopWrapper, Keyboard, KeyboardButtonColor, Text, EMPTY_KEYBOARD, BaseStateGroup
+import asyncio
 
 bot = Bot("ba11cc5d4ee4bd92628131613bc774856efcb57c2b89b44295941c51ca249da41c22fd69fae0f61aabd32")
 bot.labeler.vbml_ignore_case = True
 
 grouplist = ["420-1", "420-2", "420-3", "420-4"]
 
-ctx = CtxStorage()
+class UserState(BaseStateGroup):
+    sub = 0
+    group = 3
 
-class UserInfo(BaseStateGroup):
-    GROUP = 0
-    GOTOMENU = 1
-
-@bot.on.message(text="меню")
-@bot.on.message(state=UserInfo.GOTOMENU)
+@bot.on.private_message(payload={"cmd": "menu"})
 async def keyboard_handler(message: Message):
     keyboard = Keyboard()
     keyboard.add(Text("На сегодня", {"cmd": "today"}))
@@ -24,26 +20,46 @@ async def keyboard_handler(message: Message):
     keyboard.add(Text("На эту неделю", {"cmd": "thisweek"}))
     keyboard.add(Text("На следующую неделю", {"cmd": "nextweek"}))
     keyboard.row()
-    keyboard.add(Text("Подписаться на рассылку"), color=KeyboardButtonColor.POSITIVE)
+    keyboard.add(Text("Настройки", {"cmd": "settings"}))
+    await message.answer("Выберите, на ", keyboard=keyboard)
+
+@bot.on.private_message(payload={"cmd": "today"})
+
+@bot.on.private_message(payload={"cmd": "tommorow"})
+
+@bot.on.private_message(payload={"cmd": "thisweek"})
+
+@bot.on.private_message(payload={"cmd": "nextweek"})
+
+@bot.on.private_message(payload={"cmd": "settings"})
+async def settings_handler(message: Message):
+    keyboard = Keyboard()
+    keyboard.add(Text("Подписаться на рассылку", {"cmd": "sub"}))
     keyboard.row()
-    keyboard.add(Text("Изменить номер группы", {"cmd": "askgroup"}), color=KeyboardButtonColor.NEGATIVE)
-    await message.answer("тыква", keyboard=keyboard)
+    keyboard.add(Text("Отписаться от рассылки", {"cmd": "unsub"}))
+    keyboard.row()
+    keyboard.add(Text("Изменить номер группы", {"cmd": "askgroup"}))
+    keyboard.row()
+    keyboard.add(Text("Вернуться в меню", {"cmd": "menu"}))
+    await message.answer("Что вы хотите сделать?", keyboard=keyboard)
 
 @bot.on.message(text=["start", "начать"])
+async def askgroup_handler(message: Message):
+    await message.answer("Привет! Чтобы начать работу, укажите номер своей группы через команду 'группа (номер_группы)'.", keyboard=EMPTY_KEYBOARD)
+    await message.answer("В дальнейшем это можно будет сделать в любой момент с помощью соответствующей команды, либо вызвать подсказку через меню настроек.")
+
 @bot.on.private_message(payload={"cmd": "askgroup"})
 async def askgroup_handler(message: Message):
-    await message.answer("В какой группе ты учишься?", keyboard=EMPTY_KEYBOARD)
-    await bot.state_dispenser.set(message.peer_id, UserInfo.GROUP)
+    await message.answer("Чтобы изменить номер группы, введите команду 'группа (номер_группы)'.")
 
-@bot.on.message(state=UserInfo.GROUP)
-async def getgroup_answer(message: Message):
-    if message.text in grouplist:
-        await message.answer("Ты учишься в %s группе" % (message.text))
-        await message.answer("Чтобы продолжить введите 'меню'")
-        return
+@bot.on.private_message(text=["группа <group>", "group"])
+async def store_handler(message: Message, group=None):
+    if group in grouplist:
+        keyboard = Keyboard()
+        keyboard.add(Text("Продолжить", {"cmd": "menu"}))
+        await message.answer("Изменения сохранены!", keyboard=keyboard)
     else:
-        users_info = await bot.api.users.get(message.from_id)
-        await message.answer("Нет такой группы, {}!".format(users_info[0].first_name))
+        await message.answer("Такой группы не существует, либо вы указали аргумент пустым...")
 
 
 @bot.on.message(text="Привет")

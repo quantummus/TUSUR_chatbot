@@ -9,7 +9,7 @@ grouplist = ["420-1", "420-2", "420-3", "420-4"]
 
 class UserState(BaseStateGroup):
     sub = 0
-    group = 3
+    group = 1
 
 @bot.on.private_message(payload={"cmd": "menu"})
 async def keyboard_handler(message: Message):

@@ -157,6 +157,10 @@ async def hi_handler(ans: Message):
     await ans.answer("Привет, {}".format(users_info[0].first_name))
 
 
+
+
+# штука для рассылки
+
 loop = asyncio.get_event_loop()
 while True:
     loop.run_until_complete(schedule.run_pending())
@@ -164,5 +168,6 @@ while True:
 
 
 
-bot.run_forever()
+# штука для работы бота
 
+bot.run_forever()

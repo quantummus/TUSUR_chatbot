@@ -1,7 +1,9 @@
 from vkbottle.bot import Bot, Message
-from vkbottle import LoopWrapper, Keyboard, KeyboardButtonColor, Text, EMPTY_KEYBOARD
+from vkbottle import Keyboard, KeyboardButtonColor, Text, EMPTY_KEYBOARD, VKAPIError
+import aioschedule as schedule
+import time
+from threading import Thread
 import asyncio
-
 
 
 
@@ -22,19 +24,23 @@ grouplist = ["420-1", "420-2", "420-3", "420-4"]
 
 
 
+
+
+
 # рассылка, но не рабочая! как вариант
 # можно вместо использования loopwrapper
-# подключить библиотеку schedule чтобы 
-# бот точно делал рассылку в определенное время 
-lw = LoopWrapper()
+# подключить библиотеку schedule чтобы
+# бот точно делал рассылку в определенное время
 
-@lw.interval(seconds=10)
-async def repeated_task(message: Message):
-    await message.answer("Проверяю рассылку")
-    
-    
-    
-    
+
+
+async def job(ans: Message):
+    await ans.answer("Проверка рассылки")
+
+
+
+
+
 # меню со статичными кнопками в поле ввода
 # сообщения
 
@@ -49,10 +55,10 @@ async def keyboard_handler(message: Message):
     keyboard.row()
     keyboard.add(Text("Настройки", {"cmd": "settings"}))
     await message.answer("Выберите, на ", keyboard=keyboard)
-    
-    
-    
-    
+
+
+
+
 # хэндлеры с отправкой пользователю расписания
 # на выбранный день/период
 
@@ -82,11 +88,13 @@ async def nextweek_handler(message: Message):
 
 @bot.on.private_message(payload={"cmd": "sub"})
 async def sub_handler(message: Message):
-    await message.answer("Расписание на эту неделю:")
+    schedule.every(10).seconds.do(job, ans=message)
+    await message.answer("Вы успешно подписались на рассылку")
 
 @bot.on.private_message(payload={"cmd": "unsub"})
 async def unsub_handler(message: Message):
-    await message.answer("Расписание на эту неделю:")
+    schedule.cancel_job(job, ans=message)
+    await message.answer("Вы успешно отписались от рассылки")
 
 
 
@@ -104,10 +112,10 @@ async def settings_handler(message: Message):
     keyboard.row()
     keyboard.add(Text("Вернуться в меню", {"cmd": "menu"}))
     await message.answer("Что вы хотите сделать?", keyboard=keyboard)
-    
-    
-    
-    
+
+
+
+
 # приветственное сообщение и регистрация пользователя
 
 @bot.on.message(text=["start", "начать"])
@@ -149,8 +157,12 @@ async def hi_handler(ans: Message):
     await ans.answer("Привет, {}".format(users_info[0].first_name))
 
 
+loop = asyncio.get_event_loop()
+while True:
+    loop.run_until_complete(schedule.run_pending())
+    time.sleep(0.1)
 
 
 
 bot.run_forever()
-lw.run_forever()
+

@@ -70,6 +70,9 @@ cursorUsr = users.cursor()
 cursorTim = timetable.cursor()
 create_table()
 
+grouplist = cursorUsr.execute("""SELECT group_name
+                                FROM users """)
+print(grouplist.fetchall())
 # insert_user('420-1', 'yes')
 # insert_user('420-2', None)
 # insert_user('420-3', 'yes')
@@ -86,15 +89,15 @@ create_table()
 #                             "FROM users "
 #                             "WHERE subscribe = 'yes'")
 
-m_users = cursorUsr.execute("SELECT user_id "
-                            "FROM users "
-                            "WHERE subscribe = 'yes'")
-m_timetable = cursorTim.execute("""SELECT users.user_id, timetable.schedule 
-                                FROM timetable, users 
-                                WHERE users.subscribe='yes' AND users.group_name=timetable.group_name AND 'tomorrow'=date_id""")
-for user in m_users:
-    user_id = user
-    print(cursorTim.fetchone())
+# m_users = cursorUsr.execute("SELECT user_id "
+#                             "FROM users "
+#                             "WHERE subscribe = 'yes'")
+# m_timetable = cursorTim.execute("""SELECT users.user_id, timetable.schedule
+#                                 FROM timetable, users
+#                                 WHERE users.subscribe='yes' AND users.group_name=timetable.group_name AND 'tomorrow'=date_id""")
+# for user in m_users:
+#     user_id = user
+#     print(cursorTim.fetchone())
 
 # print('Our BD:')
 # cursorObj.execute("SELECT * FROM users")

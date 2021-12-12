@@ -3,13 +3,18 @@ from random import randint
 
 from vkbottle.bot import Bot
 
-import sqlite3
-import bd.py
+from bd import *
 
 bot = Bot("ba11cc5d4ee4bd92628131613bc774856efcb57c2b89b44295941c51ca249da41c22fd69fae0f61aabd32")
 
+sqlite3.connect('bot.db')
+
 
 async def mailing():
+    users = sql_connection()
+    timetable = sql_connection()
+    cursorUsr = users.cursor()
+    cursorTim = timetable.cursor()
     m_users = cursorUsr.execute("SELECT user_id "
                                 "FROM users "
                                 "WHERE subscribe = 'yes'")

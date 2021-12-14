@@ -21,28 +21,28 @@ async def mailing():
     users_count = cursorUsr.fetchall()
     m_users.execute("SELECT Count(*) FROM users")
     n = m_users.fetchone()
-    # изменить! сделать эксекют и фетч в цикле?
-    group_user = cursorTim.execute("""SELECT timetable.group_name
-                                        FROM timetable, users 
-                                        WHERE users.subscribe='yes' AND users.group_name=timetable.group_name AND 'tomorrow'=date_id""")
-    group_user = cursorTim.fetchall()
-    cursorTim.execute("""SELECT timetable.schedule
-                            FROM timetable, users 
-                            WHERE users.subscribe='yes' AND users.group_name=timetable.group_name AND 'tomorrow'=date_id""")
-    m_timetable = cursorTim.fetchall()
 
     # for user in m_users:
     for i in range(0, n[0] - 1):
         # try:
-        text_group = group_user[i][0]
-        text_time = m_timetable[i][0]
-        # проблема в этом? Я не понимаю как работает эта вещь
+        cursorUsr.execute("SELECT group_name "
+                            "FROM users "
+                            "WHERE subscribe = 'yes'"
+                            "AND user_id = ?", (users_count[i][0], ))
+        users_group_name = cursorUsr.fetchone()
+        cursorTim.execute("""SELECT timetable.schedule
+                                    FROM timetable, users 
+                                    WHERE users.user_id = ? 
+                                    AND users.group_name=timetable.group_name 
+                                    AND 'tomorrow'=date_id""", (users_count[i][0], ))
+        m_timetable = cursorTim.fetchone()
+        text_group = users_group_name[0]
+        text_time = m_timetable[0]
         await bot.api.messages.send(
             user_id=users_count[i][0],
             message=f"Расписание на завтра:({text_group})\n {text_time}",
             random_id=randint(0, 9999999999)
         )
-        # путает юзеров и их группы? Но высылает то все равно только одну
         print("\n\nusers = ", users_count[i][0])
         print("group = ", text_group)
         print("time = ", text_time)

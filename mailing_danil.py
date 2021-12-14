@@ -22,11 +22,14 @@ async def mailing():
                                     FROM timetable, users 
                                     WHERE users.subscribe='yes' AND users.group_name=timetable.group_name AND 'tomorrow'=date_id""")
     for user in m_users:
-        await bot.api.messages.send(
+        try:
+            await bot.api.messages.send(
             user_id=user,
             message=f"Расписание: {m_timetable.fetchone()}",
             random_id=randint(0, 9999999999)
         )
+        except VKAPIError(901):
+            pass
 
 
 if __name__ == '__main__':
